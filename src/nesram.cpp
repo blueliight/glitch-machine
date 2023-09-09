@@ -1,4 +1,4 @@
-#include "chaosnes.hpp"
+#include "glitchmachine.hpp"
 
 NESRAM::NESRAM()
 {

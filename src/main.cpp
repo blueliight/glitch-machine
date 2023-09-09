@@ -1,4 +1,4 @@
-#include "chaosnes.hpp"
+#include "glitchmachine.hpp"
 NESRAM ram;
 const int MSG_MAX_LENGTH = 30;
 
@@ -58,7 +58,7 @@ int main( int argc, char** argv )
     pc_msg_text.setFont( font );
     instr_msg_text.setPosition( 0.0, 25.0 );
 
-    sf::RenderWindow window( sf::VideoMode( SCREEN_WIDTH, SCREEN_HEIGHT ), "Chaos Emulator" );
+    sf::RenderWindow window( sf::VideoMode( SCREEN_WIDTH, SCREEN_HEIGHT ), "Glitch Machine" );
 
     while( window.isOpen() )
     {
