@@ -1,0 +1,10 @@
+rom/
+CMakeFiles/
+.vscode/
+*.dblite
+*.out
+GlitchMachine
+*.cmake
+CMakeCache.txt
+*.a
+MakeFile

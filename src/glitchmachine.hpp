@@ -9,7 +9,7 @@
 #include <fstream>
 
 #include <SFML/Graphics.hpp>
-#include <mos6502.h>
+#include "../libs/another6502/mos6502.h"
 
 // consts
 const int SCREEN_WIDTH = 640;
@@ -18,7 +18,7 @@ const int SCREEN_HEIGHT = 480;
 const uint16_t PPUCTRL = 0x2000;
 const uint16_t PPUMASK = 0x2001;
 
-class NESRAM
+class NESRAM : public ReadWriteable
 {
 private:
     uint8_t mem[ UINT16_MAX ];

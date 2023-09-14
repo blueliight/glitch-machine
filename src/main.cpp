@@ -1,16 +1,5 @@
 #include "glitchmachine.hpp"
-NESRAM ram;
 const int MSG_MAX_LENGTH = 30;
-
-uint8_t ram_read( uint16_t addr )
-{
-    return ram.read( addr );
-}
-
-void ram_write( uint16_t addr, uint8_t data )
-{
-    ram.write( addr, data );
-}
 
 int main( int argc, char** argv )
 {   
@@ -36,7 +25,8 @@ int main( int argc, char** argv )
     }
 
     PPU ppu;
-    mos6502 cpu( &ram_read, &ram_write );
+    NESRAM ram;
+    mos6502 cpu( &ram );
     cpu.Reset();
 
     ram.load_rom_at( 0x00, rom );

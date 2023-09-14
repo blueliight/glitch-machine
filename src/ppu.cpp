@@ -47,12 +47,4 @@ void PPU::MakeFrame( NESRAM * mem )
         }
 
     screen_frame.display();
-
-    /*
-    sf::CircleShape cs( 32.0f );
-    cs.setFillColor( sf::Color::Red );
-    screen_frame.clear();
-    screen_frame.draw( cs );
-    screen_frame.display();
-    */
 }
