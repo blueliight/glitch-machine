@@ -18,7 +18,7 @@ int main( int argc, char** argv )
     }
 
     sf::Font font;
-    if ( !font.loadFromFile( "resources/Dernyn's-256.ttf" ) )
+    if ( !font.loadFromFile( "libs/256/Dernyn's-256(baseline).ttf" ) )
     {
         std::cerr << "Error while loading font" << std::endl;
         return 1;
@@ -27,9 +27,9 @@ int main( int argc, char** argv )
     PPU ppu;
     NESRAM ram;
     mos6502 cpu( &ram );
-    cpu.Reset();
 
     ram.load_rom_at( 0x00, rom );
+    cpu.Reset();
 
     char instr_msg[MSG_MAX_LENGTH];
     char pc_msg[MSG_MAX_LENGTH];
@@ -87,6 +87,12 @@ int main( int argc, char** argv )
         window.draw( pc_msg_text );
         window.draw( instr_msg_text );
         window.display();
+
+        if ( cpu.illegalOpcode )
+        {
+            printf( "Illegal opcode %x at %x!", cpu.GetPC(), ram.read( cpu.GetPC() ) );
+            cpu.Reset();
+        }
     }
 
     return 0;
