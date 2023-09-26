@@ -1,5 +1,12 @@
 #include "glitchmachine.hpp"
 
+sf::Color PPU::palette[0xf] = {
+    sf::Color( 0x000000ff ), sf::Color( 0xffffffff ), sf::Color( 0x880000ff ), sf::Color( 0xaaffeeff),
+    sf::Color( 0xcc44ccff ), sf::Color( 0x00cc55ff ), sf::Color( 0x0000aaff ), sf::Color( 0xeeee77ff ),
+    sf::Color( 0xdd8855ff ), sf::Color( 0x664400ff ), sf::Color( 0xff7777ff ), sf::Color( 0x333333ff ),
+    sf::Color( 0x777777ff ), sf::Color( 0xaaff66ff ), sf::Color( 0x0088ffff )//, sf::Color( 0xbbbbbbff )
+};
+
 PPU::PPU()
 {
     pixel_size.x = (float) SCREEN_WIDTH/32;
@@ -13,11 +20,13 @@ PPU::PPU()
 // Minimum Viable Product is to run snake6502!
 void PPU::MakeFrame( NESRAM * mem )
 {
+    /*
     if ( mem->read( PPUCTRL ) )
     {
         printf( "Rendering disabled! \n" );
         return;
     }
+    */
 
     screen_frame.clear();
     sf::Vector2f screen_ptr( 0.0, 0.0 );
@@ -32,14 +41,7 @@ void PPU::MakeFrame( NESRAM * mem )
             sf::RectangleShape pixel( pixel_size );
             pixel.setPosition( screen_ptr );
             
-            if ( mem->read( mem_ptr ) > 0 )
-            {
-                pixel.setFillColor( sf::Color::White );
-            }
-            else
-            {
-                pixel.setFillColor( sf::Color::Black );
-            }
+            pixel.setFillColor( palette[ mem->read( mem_ptr ) & 0x0f ] );
 
             screen_frame.draw( pixel );
 

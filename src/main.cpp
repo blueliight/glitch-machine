@@ -1,99 +1,168 @@
 #include "glitchmachine.hpp"
-const int MSG_MAX_LENGTH = 30;
+
+GlitchMachine GlitchMachine::gm_instance;
+
+char * NFDOpen()
+{
+    nfdchar_t * out_path = NULL;
+    nfdresult_t result = NFD_OpenDialog( NULL, NULL, &out_path );
+
+    if ( result == NFD_OKAY )
+    {
+        return out_path;
+    }
+    else if ( result == NFD_CANCEL )
+    {
+        return NULL;
+    }
+    else
+    {
+        std::cerr << "NativeFileDialog error: " << NFD_GetError() << std::endl;
+        return NULL;
+    }
+}
 
 int main( int argc, char** argv )
-{   
+{
+    sf::Clock delta_clock;
+    bool show_processor_status = false;
+    bool show_open_file = false;
+    bool show_glitch_controls = false;
 
-    if ( argc < 2 )
+    sf::RenderWindow window( sf::VideoMode( SCREEN_WIDTH, SCREEN_HEIGHT ), "Glitch Machine"  );
+    if ( !ImGui::SFML::Init( window ) )
     {
-        std::cout << "No ROM file specified. Exiting." << std::endl;
-        return 0;
+        std::cerr << "Unable to initialize imgui!" << std::endl;
     }
 
-    FILE * rom = fopen( argv[1], "r" );
-    if ( rom == NULL )
+
+    if ( argc > 1 )
     {
-        std::cout << "Unable to open " << argv[1] << ", exiting." << std::endl;
-        return 0;
+        GlitchMachine::Get().OpenRom( argv[1] );
     }
 
-    sf::Font font;
-    if ( !font.loadFromFile( "libs/256/Dernyn's-256(baseline).ttf" ) )
-    {
-        std::cerr << "Error while loading font" << std::endl;
-        return 1;
-    }
-
-    PPU ppu;
-    NESRAM ram;
-    mos6502 cpu( &ram );
-
-    ram.load_rom_at( 0x00, rom );
-    cpu.Reset();
-
-    char instr_msg[MSG_MAX_LENGTH];
-    char pc_msg[MSG_MAX_LENGTH];
-
-    sf::Text instr_msg_text;
-    instr_msg_text.setCharacterSize( 24 );
-    instr_msg_text.setFillColor( sf::Color::Blue );
-    instr_msg_text.setStyle( sf::Text::Regular );
-    instr_msg_text.setFont( font );
-    instr_msg_text.setPosition( 0.0, 0.0 );
-
-    sf::Text pc_msg_text;
-    pc_msg_text.setCharacterSize( 24 );
-    pc_msg_text.setFillColor( sf::Color::Blue );
-    pc_msg_text.setStyle( sf::Text::Regular );
-    pc_msg_text.setFont( font );
-    instr_msg_text.setPosition( 0.0, 25.0 );
-
-    sf::RenderWindow window( sf::VideoMode( SCREEN_WIDTH, SCREEN_HEIGHT ), "Glitch Machine" );
 
     while( window.isOpen() )
     {
         sf::Event event;
         while ( window.pollEvent( event ) )
         {
+            ImGui::SFML::ProcessEvent( window, event );
             if ( event.type == sf::Event::Closed )
                 window.close();
+            
+            if ( event.type == sf::Event::TextEntered )
+            {
+                GlitchMachine::Get().KeyPressed( event.key.code & 0xff ); // unicode -> ascii
+            }
         }
 
-        uint64_t cycle_count = 0;
+        GlitchMachine::Get().Update();
 
-        if ( snprintf( pc_msg, MSG_MAX_LENGTH, "PC = %x", cpu.GetPC() ) < 0 )
+        //
+        // HERE COMES THE UI CODE ( please find a better place to put it )
+        //
+
+        ImGui::SFML::Update( window, delta_clock.restart() );
+
+        if ( ImGui::BeginMainMenuBar() )
         {
-            std::cerr << "Error formatting pc_msg!" << std::endl;
-            return 1;
+            if ( ImGui::BeginMenu( "File" ) )
+            {
+                ImGui::MenuItem( "Open", NULL, &show_open_file );
+                ImGui::EndMenu();
+            }
+            if ( ImGui::BeginMenu( "Tools" ) )
+            {
+                ImGui::MenuItem( "Glitch Controls", NULL, &show_glitch_controls );
+                ImGui::EndMenu();
+            }
+            if( ImGui::BeginMenu( "View" ) )
+            {
+                ImGui::MenuItem( "CPU Status", NULL, &show_processor_status );
+                ImGui::EndMenu();
+            }
+            ImGui::EndMainMenuBar();
         }
 
-        if ( snprintf( instr_msg, MSG_MAX_LENGTH, "Instruction = %x", ram.read( cpu.GetPC() ) ) < 0 )
+        if( show_processor_status )
+            if ( ImGui::Begin( "Processor Status" ) )
+            {
+                // draw table of processor registers
+                if( ImGui::BeginTable( "Register Table", 2, 
+                    ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg
+                ))
+                {
+                    ImGui::TableNextColumn();
+                    ImGui::TableHeader( "Register" );
+                    ImGui::TableNextColumn();
+                    ImGui::TableHeader( "Status" );
+
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "PC" );
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "%x", GlitchMachine::Get().cpu->GetPC() );
+
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "A" );
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "%x", GlitchMachine::Get().cpu->GetA() );
+
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "P" );
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "%x", GlitchMachine::Get().cpu->GetP() );
+
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "X" );
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "%x", GlitchMachine::Get().cpu->GetX() );
+
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "Y" );
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "%x", GlitchMachine::Get().cpu->GetY() );
+
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "S" );
+                    ImGui::TableNextColumn();
+                    ImGui::Text( "%x", GlitchMachine::Get().cpu->GetS() );
+                
+                    ImGui::EndTable();
+                }
+
+            ImGui::Text( "Current instruction = %x", GlitchMachine::Get().ram.read( GlitchMachine::Get().cpu->GetPC() ) );
+
+            ImGui::Checkbox( "Run", &GlitchMachine::Get().settings.continuous_run );
+
+            if ( !GlitchMachine::Get().settings.continuous_run )
+                GlitchMachine::Get().settings.step = ImGui::Button( "Step" );
+            ImGui::End();
+        }
+
+        if (show_open_file)
         {
-            std::cerr << "Error formatting instr_msg!" << std::endl;
-            return 1;
+            char * path = NFDOpen();
+            if ( path != NULL )
+                GlitchMachine::Get().OpenRom( path );
+            else
+                std::cerr << "NativeFileDialog error!" << std::endl;
+            show_open_file = false;
         }
-
-        sf::String pc_msg_string( pc_msg );
-        pc_msg_text.setString( pc_msg_string );
-        
-        sf::String instr_msg_string( instr_msg );
-        instr_msg_text.setString( instr_msg_string );
-
-        cpu.Run( 1, cycle_count, mos6502::CycleMethod::INST_COUNT );
-        ppu.MakeFrame( &ram );
 
         window.clear();
-        window.draw( sf::Sprite( ppu.screen_frame.getTexture() ) );
-        window.draw( pc_msg_text );
-        window.draw( instr_msg_text );
+        window.draw( sf::Sprite( GlitchMachine::Get().GetScreenTexture() ) );
+        ImGui::SFML::Render( window );
         window.display();
-
-        if ( cpu.illegalOpcode )
-        {
-            printf( "Illegal opcode %x at %x!", cpu.GetPC(), ram.read( cpu.GetPC() ) );
-            cpu.Reset();
-        }
     }
+
+    ImGui::SFML::Shutdown();
 
     return 0;
 }

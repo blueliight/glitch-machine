@@ -7,3 +7,9 @@
 [submodule "libs/256"]
 	path = libs/256
 	url = https://github.com/dernyn/256.git
+[submodule "libs/imgui-sfml"]
+	path = libs/imgui-sfml
+	url = https://github.com/SFML/imgui-sfml.git
+[submodule "libs/nativefiledialog"]
+	path = libs/nativefiledialog
+	url = https://github.com/mlabbe/nativefiledialog.git
