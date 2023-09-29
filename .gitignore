@@ -8,3 +8,8 @@ GlitchMachine
 CMakeCache.txt
 *.a
 MakeFile
+Makefile
+*.ini
+*.ninja*
+*.json
+
