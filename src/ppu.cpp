@@ -12,41 +12,59 @@ PPU::PPU()
     pixel_size.x = (float) SCREEN_WIDTH/32;
     pixel_size.y = (float) SCREEN_HEIGHT/32;
 
-    assert( screen_frame.create( SCREEN_WIDTH, SCREEN_HEIGHT ) == true);
-
     assert( (int) screen_memory_start + screen_memory_length < UINT16_MAX );
+
+    screen_frame.setPrimitiveType( sf::Triangles );
+    screen_frame.resize( 32*32*6 );
+
+    // initialize virtual screen vertex array
+    sf::Vector2f left_top( 0.f, 0.f );
+    sf::Vector2f right_bottom( 0.f, 0.f );
+    int index = 0;
+    for ( int y = 0; y < 32; y++ )
+        for ( int x = 0; x < 32; x++ )
+        {
+            left_top.x = pixel_size.x * x;
+            left_top.y = pixel_size.y * y;
+
+            right_bottom.x = left_top.x + pixel_size.x;
+            right_bottom.y = left_top.y + pixel_size.y;
+
+            // top left triangle
+            screen_frame[index] = sf::Vertex( left_top, palette[0] );
+            screen_frame[index + 1] = sf::Vertex( sf::Vector2f( right_bottom.x, left_top.y ), palette[0] );
+            screen_frame[index + 2] = sf::Vertex( sf::Vector2f( left_top.x, right_bottom.y ), palette[0] );
+
+            // bottom right triangle
+            screen_frame[index + 3] = sf::Vertex( sf::Vector2f( right_bottom.x, left_top.y ), palette[0] );
+            screen_frame[index + 4] = sf::Vertex( right_bottom, palette[4] );
+            screen_frame[index + 5] = sf::Vertex( sf::Vector2f( left_top.x, right_bottom.y ), palette[0] );
+
+            index += 6;
+        }
 }
 
 // Minimum Viable Product is to run snake6502!
 void PPU::MakeFrame( NESRAM * mem )
 {
-    /*
-    if ( mem->read( PPUCTRL ) )
-    {
-        printf( "Rendering disabled! \n" );
-        return;
-    }
-    */
-
-    screen_frame.clear();
-    sf::Vector2f screen_ptr( 0.0, 0.0 );
     uint16_t mem_ptr = screen_memory_start;
 
+    int p_index = 0;
+    sf::Color p_color;
     for ( int y = 0; y < 32; y++ )
         for ( int x = 0; x < 32; x++ )
         {
-            screen_ptr.x = pixel_size.x * x;
-            screen_ptr.y = pixel_size.y * y;
-
-            sf::RectangleShape pixel( pixel_size );
-            pixel.setPosition( screen_ptr );
+            p_color = palette[ mem->read( mem_ptr ) & 0x0f ];
             
-            pixel.setFillColor( palette[ mem->read( mem_ptr ) & 0x0f ] );
-
-            screen_frame.draw( pixel );
-
+            screen_frame[ p_index ].color = p_color;
+            screen_frame[ p_index + 1 ].color = p_color;
+            screen_frame[ p_index + 2 ].color = p_color;
+            screen_frame[ p_index + 3 ].color = p_color;
+            screen_frame[ p_index + 4 ].color = p_color;
+            screen_frame[ p_index + 5 ].color = p_color;
+            
+            p_index += 6;
             mem_ptr++;
         }
-
-    screen_frame.display();
+    
 }

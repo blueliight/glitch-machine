@@ -39,18 +39,18 @@ public:
 
 class PPU
 {
-private:
-    bool rendering_enabled;
-    u_int16_t screen_memory_start = 0x200;
-    int screen_memory_length = 32 * 32;
-    sf::Vector2f pixel_size;
+    private:
+        bool rendering_enabled;
+        u_int16_t screen_memory_start = 0x200;
+        int screen_memory_length = 32 * 32;
+        sf::Vector2f pixel_size;
 
-    static sf::Color palette[0xf];
+        static sf::Color palette[0xf];
 
-public:
-    PPU();
-    void MakeFrame( NESRAM * ram );
-    sf::RenderTexture screen_frame;
+    public:
+        PPU();
+        void MakeFrame( NESRAM * ram );
+        sf::VertexArray screen_frame;
 };
 
 typedef struct Settings
@@ -81,7 +81,6 @@ class GlitchMachine
         void InitGui( sf::RenderWindow * window );
         void OpenRom( char * path );
         void Update();
-        sf::Texture GetScreenTexture();
     
     private:
         GlitchMachine();

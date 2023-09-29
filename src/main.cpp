@@ -156,8 +156,9 @@ int main( int argc, char** argv )
             show_open_file = false;
         }
 
+
         window.clear();
-        window.draw( sf::Sprite( GlitchMachine::Get().GetScreenTexture() ) );
+        window.draw( GlitchMachine::Get().ppu.screen_frame );
         ImGui::SFML::Render( window );
         window.display();
     }
